@@ -6,6 +6,14 @@ const { BOT_TOKEN, NOTION_TOKEN, NOTION_ROOT } = process.env;
 const bot = new Telegraf(BOT_TOKEN);
 const notion = new Client({ auth: NOTION_TOKEN });
 
+function pageTitle(text) {
+  const maxLength = 35;
+  if (text.length <= maxLength) {
+    return text;
+  }
+  return `${text.slice(0, maxLength - 3)}...`;
+}
+
 function makePageCreateData(text) {
   return {
     parent: {
@@ -14,10 +22,22 @@ function makePageCreateData(text) {
     properties: {
       title: [{
         text: {
-          content: text,
+          content: pageTitle(text),
         },
       }],
     },
+    children: [{
+      object: 'block',
+      type: 'paragraph',
+      paragraph: {
+        text: [{
+          type: 'text',
+          text: {
+            content: text,
+          },
+        }],
+      },
+    }],
   };
 }
 
