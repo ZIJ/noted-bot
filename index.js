@@ -1,6 +1,6 @@
 import { Telegraf } from 'telegraf';
 import { Client } from '@notionhq/client';
-import { express } from 'express';
+import express from 'express';
 
 const { BOT_TOKEN, NOTION_TOKEN, NOTION_ROOT } = process.env;
 
