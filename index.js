@@ -1,12 +1,11 @@
 import { Telegraf } from 'telegraf';
 import { Client } from '@notionhq/client';
 import express from 'express';
+import { MongoClient } from 'mongodb';
 
-const { BOT_TOKEN, NOTION_TOKEN, NOTION_ROOT } = process.env;
-
-const bot = new Telegraf(BOT_TOKEN);
-const notion = new Client({ auth: NOTION_TOKEN });
+const bot = new Telegraf(process.env.BOT_TOKEN);
 const server = express();
+const mongodb = new MongoClient(process.env.MONGODB_URI);
 
 // health check
 server.get('/', (req, res) => {
@@ -23,10 +22,10 @@ function pageTitle(text) {
   return `${text.slice(0, maxLength - 3)}...`;
 }
 
-function makePageCreateData(text) {
+function makePageCreateData(text, rootPage) {
   return {
     parent: {
-      page_id: NOTION_ROOT,
+      page_id: rootPage,
     },
     properties: {
       title: [{
@@ -54,12 +53,56 @@ bot.command('helloworld', (ctx) => {
   ctx.reply('Hello World!');
 });
 
-bot.on('message', async (ctx) => {
-  const page = makePageCreateData(ctx.message.text);
+bot.command('notionToken', async (ctx) => {
+  const userId = ctx.message.from.id;
+  const notionToken = ctx.message.text.substring(13);
   try {
-    await notion.pages.create(page);
-  } catch (e) {
-    console.error(e);
+    await mongodb.connect();
+    const users = mongodb.db('defaultDb').collection('users');
+    const updateDoc = {
+      $set: {
+        id: userId,
+        notionToken,
+      },
+    };
+    await users.updateOne({ id: userId }, updateDoc, { upsert: true });
+  } finally {
+    await mongodb.close();
+  }
+});
+
+bot.command('notionPage', async (ctx) => {
+  const userId = ctx.message.from.id;
+  const notionRoot = ctx.message.text.substring(12);
+  try {
+    await mongodb.connect();
+    const users = mongodb.db('defaultDb').collection('users');
+    const updateDoc = {
+      $set: {
+        id: userId,
+        notionRoot,
+      },
+    };
+    await users.updateOne({ id: userId }, updateDoc, { upsert: true });
+  } finally {
+    await mongodb.close();
+  }
+});
+
+bot.on('message', async (ctx) => {
+  try {
+    await mongodb.connect();
+    const users = mongodb.db('defaultDb').collection('users');
+    const user = await users.findOne({ id: ctx.message.from.id });
+    if (user) {
+      const notion = new Client({ auth: user.notionToken });
+      const page = makePageCreateData(ctx.message.text, user.notionRoot);
+      await notion.pages.create(page);
+    } else {
+      ctx.reply('Notion integration not configured. Use /notionToken and /notionRoot commands.');
+    }
+  } finally {
+    await mongodb.close();
   }
 });
 
