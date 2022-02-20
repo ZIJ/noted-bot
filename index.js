@@ -49,6 +49,15 @@ function makePageCreateData(text, rootPage) {
   };
 }
 
+bot.start((ctx) => ctx.reply(`
+Hi there! Noted Bot saves all messages it receives into your Notion.
+Configure:
+1. Go to https://www.notion.so/my-integrations, create a new integration and copy the token
+2. Add your token to Noted Bot: /notionToken <your_token>
+3. Share the page that all your notes will go under with your new integration
+4. Copy that page's ID from URL and add it to Noted Bot: /notionPage <your_page_id>
+`));
+
 bot.command('helloworld', (ctx) => {
   ctx.reply('Hello World!');
 });
