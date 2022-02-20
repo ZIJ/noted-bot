@@ -13,8 +13,8 @@ Just add https://t.me/NotedCaptureBot and follow instructions (same as below)
 4. Copy that page's ID from URL and add it to Noted Bot: /notionPage <your_page_id>
 
 # Commands
-**/notionToken** - set Notion integration token
-**/notionPage** - sets Notion root page that all your notes will go under
+- **/notionToken** - set Notion integration token
+- **/notionPage** - sets Notion root page that all your notes will go under
 
 # Built with
 - Node.js
