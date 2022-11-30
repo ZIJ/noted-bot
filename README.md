@@ -20,7 +20,7 @@ Just add https://t.me/NotedCaptureBot and follow instructions (same as below)
 - Node.js
 - Telegraf 
 - MongoDB Atlas
-- Deployed to fly.io: [noted-bot.fly.dev](noted-bot.fly.dev)
+- Deployed to fly.io: [noted-bot.fly.dev](https://noted-bot.fly.dev)
 
 Env vars (values in Evernote):
 ```
