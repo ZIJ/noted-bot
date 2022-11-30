@@ -19,13 +19,8 @@ Just add https://t.me/NotedCaptureBot and follow instructions (same as below)
 # Built with
 - Node.js
 - Telegraf 
-- MongoDB
-- Deployed on AWS with [Digger.dev](https://digger.dev)
-
-# Dev
-Deployed to fly.io: [noted-bot.fly.dev](noted-bot.fly.dev)
-
-Database in Mongo Atlas
+- MongoDB Atlas
+- Deployed to fly.io: [noted-bot.fly.dev](noted-bot.fly.dev)
 
 Env vars (values in Evernote):
 ```
