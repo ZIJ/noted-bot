@@ -22,4 +22,17 @@ Just add https://t.me/NotedCaptureBot and follow instructions (same as below)
 - MongoDB
 - Deployed on AWS with [Digger.dev](https://digger.dev)
 
+# Dev
+Deployed to fly.io: [noted-bot.fly.dev](noted-bot.fly.dev)
+
+Database in Mongo Atlas
+
+Env vars (values in Evernote):
+```
+BOT_TOKEN
+NOTION_TOKEN
+NOTION_ROOT
+MONGODB_URI
+```
+
 
