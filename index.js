@@ -52,8 +52,14 @@ async function chooseParentPage(text, rootPage, notionClient) {
     const prompt = getPrompt(subpageTitles, text);
     const res = await gpt.sendMessage(prompt);
     const mostRelevantPageTitle = res.text;
-    const page = subpages
+    let page = subpages
       .find((p) => p.child_page.title.toLowerCase() === mostRelevantPageTitle.toLowerCase());
+    if (!page) {
+      page = subpages.find((p) => p.child_page.title.toLowerCase() === 'general');
+    }
+    if (!page) {
+      throw new Error('Failed to identify subpage or find a page named General');
+    }
     return page;
   } catch (e) {
     return {
