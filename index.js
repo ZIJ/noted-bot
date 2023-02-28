@@ -3,6 +3,7 @@ import { Client } from '@notionhq/client';
 import express from 'express';
 import { MongoClient } from 'mongodb';
 import { ChatGPTAPI } from 'chatgpt';
+import { Analytics } from '@segment/analytics-node';
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const server = express();
@@ -10,6 +11,7 @@ const mongodb = new MongoClient(process.env.MONGODB_URI);
 const gpt = new ChatGPTAPI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+const analytics = new Analytics({ writeKey: process.env.SEGMENT_WRITE_KEY });
 
 // health check
 server.get('/', (req, res) => {
@@ -112,6 +114,14 @@ bot.command('helloworld', (ctx) => {
 bot.command('notionToken', async (ctx) => {
   const userId = ctx.message.from.id;
   const notionToken = ctx.message.text.substring(13);
+  analytics.identify({
+    userId,
+    traits: {
+      firstName: ctx.message.from.firstName,
+      lastName: ctx.message.from.lastName,
+      username: ctx.message.from.username,
+    },
+  });
   try {
     await mongodb.connect();
     const users = mongodb.db('defaultDb').collection('users');
@@ -130,6 +140,14 @@ bot.command('notionToken', async (ctx) => {
 bot.command('notionPage', async (ctx) => {
   const userId = ctx.message.from.id;
   const notionRoot = ctx.message.text.substring(12);
+  analytics.identify({
+    userId,
+    traits: {
+      firstName: ctx.message.from.firstName,
+      lastName: ctx.message.from.lastName,
+      username: ctx.message.from.username,
+    },
+  });
   try {
     await mongodb.connect();
     const users = mongodb.db('defaultDb').collection('users');
@@ -146,6 +164,11 @@ bot.command('notionPage', async (ctx) => {
 });
 
 bot.on('message', async (ctx) => {
+  const userId = ctx.message.from.id;
+  analytics.track({
+    userId,
+    event: 'Note',
+  });
   try {
     await mongodb.connect();
     const users = mongodb.db('defaultDb').collection('users');
