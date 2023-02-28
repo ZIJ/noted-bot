@@ -99,12 +99,16 @@ function makePageCreateData(text, rootPage) {
 }
 
 bot.start((ctx) => ctx.reply(`
-Hi there! Noted Bot saves all messages it receives into your Notion.
-Configure:
-1. Go to https://www.notion.so/my-integrations, create a new integration and copy the token
-2. Add your token to Noted Bot: /notionToken <your_token>
-3. Share the page that all your notes will go under with your new integration
-4. Copy that page's ID from URL and add it to Noted Bot: /notionPage <your_page_id>
+Hi there! Notability is an AI chatbot that figures where to save your notes in Notion. Like an assistant would.
+
+Configuration:
+1. Create a new integration in Notion: https://www.notion.so/my-integrations
+2. Copy the integration token and send it to Notability: /notionToken <your_token>
+3. Create a root page for your notes with a few sub-pages (more descriptive better)
+4. Share your page with the integration in Notion (otherwise Notability won't work!)
+4. Copy the root page ID from its URL and send it to Notability: /notionPage <your_page_id>
+
+Detailed guide + video: https://spotless-tulip-a14.notion.site/How-to-configure-Notability-14750f5ddbd64013b896a4f5ad1f3285
 `));
 
 bot.command('helloworld', (ctx) => {
