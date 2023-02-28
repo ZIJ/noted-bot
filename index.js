@@ -179,7 +179,7 @@ bot.on('message', async (ctx) => {
       event: 'Note',
     });
   } catch (e) {
-    console.errlogor(`Error Segment track: ${userId}`);
+    console.log(`Error Segment track: ${userId}`);
   }
   try {
     await mongodb.connect();
