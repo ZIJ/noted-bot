@@ -114,14 +114,18 @@ bot.command('helloworld', (ctx) => {
 bot.command('notionToken', async (ctx) => {
   const userId = ctx.message.from.id;
   const notionToken = ctx.message.text.substring(13);
-  analytics.identify({
-    userId,
-    traits: {
-      firstName: ctx.message.from.firstName,
-      lastName: ctx.message.from.lastName,
-      username: ctx.message.from.username,
-    },
-  });
+  try {
+    analytics.identify({
+      userId,
+      traits: {
+        firstName: ctx.message.from.firstName,
+        lastName: ctx.message.from.lastName,
+        username: ctx.message.from.username,
+      },
+    });
+  } catch (e) {
+    console.log(`Error Segment identifying user: ${userId}`);
+  }
   try {
     await mongodb.connect();
     const users = mongodb.db('defaultDb').collection('users');
@@ -140,14 +144,18 @@ bot.command('notionToken', async (ctx) => {
 bot.command('notionPage', async (ctx) => {
   const userId = ctx.message.from.id;
   const notionRoot = ctx.message.text.substring(12);
-  analytics.identify({
-    userId,
-    traits: {
-      firstName: ctx.message.from.firstName,
-      lastName: ctx.message.from.lastName,
-      username: ctx.message.from.username,
-    },
-  });
+  try {
+    analytics.identify({
+      userId,
+      traits: {
+        firstName: ctx.message.from.firstName,
+        lastName: ctx.message.from.lastName,
+        username: ctx.message.from.username,
+      },
+    });
+  } catch (e) {
+    console.log(`Error Segment identifying user: ${userId}`);
+  }
   try {
     await mongodb.connect();
     const users = mongodb.db('defaultDb').collection('users');
@@ -171,7 +179,7 @@ bot.on('message', async (ctx) => {
       event: 'Note',
     });
   } catch (e) {
-    console.error(e);
+    console.errlogor(`Error Segment track: ${userId}`);
   }
   try {
     await mongodb.connect();
