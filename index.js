@@ -116,7 +116,7 @@ bot.command('notionToken', async (ctx) => {
   const notionToken = ctx.message.text.substring(13);
   try {
     analytics.identify({
-      userId,
+      userId: userId.toString(),
       traits: {
         firstName: ctx.message.from.firstName,
         lastName: ctx.message.from.lastName,
@@ -146,7 +146,7 @@ bot.command('notionPage', async (ctx) => {
   const notionRoot = ctx.message.text.substring(12);
   try {
     analytics.identify({
-      userId,
+      userId: userId.toString(),
       traits: {
         firstName: ctx.message.from.firstName,
         lastName: ctx.message.from.lastName,
@@ -175,7 +175,7 @@ bot.on('message', async (ctx) => {
   const userId = ctx.message.from.id;
   try {
     analytics.track({
-      userId,
+      userId: userId.toString(),
       event: 'Note',
     });
   } catch (e) {
@@ -189,8 +189,13 @@ bot.on('message', async (ctx) => {
       const notion = new Client({ auth: user.notionToken });
       const parentPage = await chooseParentPage(ctx.message.text, user.notionRoot, notion);
       const page = makePageCreateData(ctx.message.text, parentPage.id);
-      await notion.pages.create(page);
-      ctx.reply(`Saved in ${parentPage.child_page.title}`);
+      try {
+        await notion.pages.create(page);
+        ctx.reply(`Saved in ${parentPage.child_page.title}`);
+      } catch (e) {
+        ctx.reply(`ERROR: Tried to save in ${parentPage.child_page.title} but Notion API returned an error.
+        Did you share your root page with the integration?`);
+      }
     } else {
       ctx.reply('Notion integration not configured. Use /notionToken and /notionRoot commands.');
     }
