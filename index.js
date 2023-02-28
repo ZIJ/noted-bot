@@ -3,6 +3,7 @@ import { Client } from '@notionhq/client';
 import express from 'express';
 import { MongoClient } from 'mongodb';
 import { ChatGPTAPI } from 'chatgpt';
+import { Analytics } from '@segment/analytics-node';
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const server = express();
@@ -10,6 +11,7 @@ const mongodb = new MongoClient(process.env.MONGODB_URI);
 const gpt = new ChatGPTAPI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+const analytics = new Analytics({ writeKey: process.env.SEGMENT_WRITE_KEY });
 
 // health check
 server.get('/', (req, res) => {
@@ -113,6 +115,18 @@ bot.command('notionToken', async (ctx) => {
   const userId = ctx.message.from.id;
   const notionToken = ctx.message.text.substring(13);
   try {
+    analytics.identify({
+      userId: userId.toString(),
+      traits: {
+        firstName: ctx.message.from.firstName,
+        lastName: ctx.message.from.lastName,
+        username: ctx.message.from.username,
+      },
+    });
+  } catch (e) {
+    console.log(`Error Segment identifying user: ${userId}`);
+  }
+  try {
     await mongodb.connect();
     const users = mongodb.db('defaultDb').collection('users');
     const updateDoc = {
@@ -131,6 +145,18 @@ bot.command('notionPage', async (ctx) => {
   const userId = ctx.message.from.id;
   const notionRoot = ctx.message.text.substring(12);
   try {
+    analytics.identify({
+      userId: userId.toString(),
+      traits: {
+        firstName: ctx.message.from.firstName,
+        lastName: ctx.message.from.lastName,
+        username: ctx.message.from.username,
+      },
+    });
+  } catch (e) {
+    console.log(`Error Segment identifying user: ${userId}`);
+  }
+  try {
     await mongodb.connect();
     const users = mongodb.db('defaultDb').collection('users');
     const updateDoc = {
@@ -146,6 +172,15 @@ bot.command('notionPage', async (ctx) => {
 });
 
 bot.on('message', async (ctx) => {
+  const userId = ctx.message.from.id;
+  try {
+    analytics.track({
+      userId: userId.toString(),
+      event: 'Note',
+    });
+  } catch (e) {
+    console.log(`Error Segment track: ${userId}`);
+  }
   try {
     await mongodb.connect();
     const users = mongodb.db('defaultDb').collection('users');
@@ -154,8 +189,13 @@ bot.on('message', async (ctx) => {
       const notion = new Client({ auth: user.notionToken });
       const parentPage = await chooseParentPage(ctx.message.text, user.notionRoot, notion);
       const page = makePageCreateData(ctx.message.text, parentPage.id);
-      await notion.pages.create(page);
-      ctx.reply(`Saved in ${parentPage.child_page.title}`);
+      try {
+        await notion.pages.create(page);
+        ctx.reply(`Saved in ${parentPage.child_page.title}`);
+      } catch (e) {
+        ctx.reply(`ERROR: Tried to save in ${parentPage.child_page.title} but Notion API returned an error.
+        Did you share your root page with the integration?`);
+      }
     } else {
       ctx.reply('Notion integration not configured. Use /notionToken and /notionRoot commands.');
     }
