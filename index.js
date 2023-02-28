@@ -165,10 +165,14 @@ bot.command('notionPage', async (ctx) => {
 
 bot.on('message', async (ctx) => {
   const userId = ctx.message.from.id;
-  analytics.track({
-    userId,
-    event: 'Note',
-  });
+  try {
+    analytics.track({
+      userId,
+      event: 'Note',
+    });
+  } catch (e) {
+    console.error(e);
+  }
   try {
     await mongodb.connect();
     const users = mongodb.db('defaultDb').collection('users');
