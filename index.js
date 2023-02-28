@@ -2,10 +2,14 @@ import { Telegraf } from 'telegraf';
 import { Client } from '@notionhq/client';
 import express from 'express';
 import { MongoClient } from 'mongodb';
+import { ChatGPTAPI } from 'chatgpt';
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const server = express();
 const mongodb = new MongoClient(process.env.MONGODB_URI);
+const gpt = new ChatGPTAPI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 // health check
 server.get('/', (req, res) => {
@@ -15,11 +19,54 @@ server.get('/', (req, res) => {
 server.listen(8080);
 
 function pageTitle(text) {
-  const maxLength = 35;
+  const maxLength = 80;
   if (text.length <= maxLength) {
     return text;
   }
   return `${text.slice(0, maxLength - 3)}...`;
+}
+
+function getPrompt(subpageTitles, noteText) {
+  return `I have the following list of pages, each page contains notes on one topic:
+
+  ${subpageTitles.map((title) => ` - ${title}`).join('\n')}
+  
+  And the following note text (in quotes):
+  
+  "${noteText}"
+  
+  Which of the pages is the note most relevant to?
+  
+  Respond with page title only.`;
+}
+
+async function chooseParentPage(text, rootPage, notionClient) {
+  const response = await notionClient.blocks.children.list({
+    block_id: rootPage,
+    page_size: 1000,
+  });
+
+  const subpages = response.results.filter((result) => result.type === 'child_page');
+  const subpageTitles = subpages.map((page) => page.child_page.title);
+  try {
+    const prompt = getPrompt(subpageTitles, text);
+    const res = await gpt.sendMessage(prompt);
+    const mostRelevantPageTitle = res.text;
+    let page = subpages
+      .find((p) => p.child_page.title.toLowerCase() === mostRelevantPageTitle.toLowerCase());
+    if (!page) {
+      page = subpages.find((p) => p.child_page.title.toLowerCase() === 'general');
+    }
+    if (!page) {
+      throw new Error('Failed to identify subpage or find a page named General');
+    }
+    return page;
+  } catch (e) {
+    return {
+      id: rootPage,
+      child_page: { title: 'Root Page' },
+    };
+  }
 }
 
 function makePageCreateData(text, rootPage) {
@@ -105,8 +152,10 @@ bot.on('message', async (ctx) => {
     const user = await users.findOne({ id: ctx.message.from.id });
     if (user) {
       const notion = new Client({ auth: user.notionToken });
-      const page = makePageCreateData(ctx.message.text, user.notionRoot);
+      const parentPage = await chooseParentPage(ctx.message.text, user.notionRoot, notion);
+      const page = makePageCreateData(ctx.message.text, parentPage.id);
       await notion.pages.create(page);
+      ctx.reply(`Saved in ${parentPage.child_page.title}`);
     } else {
       ctx.reply('Notion integration not configured. Use /notionToken and /notionRoot commands.');
     }
