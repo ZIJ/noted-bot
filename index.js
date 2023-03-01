@@ -142,6 +142,9 @@ bot.command('notionToken', async (ctx) => {
       },
     };
     await users.updateOne({ id: userId }, updateDoc, { upsert: true });
+    ctx.reply('Token saved successfully!');
+  } catch (e) {
+    ctx.reply('ERROR: failed to save token; our bad. Please try /notionToken again');
   } finally {
     await mongodb.close();
   }
@@ -172,6 +175,9 @@ bot.command('notionPage', async (ctx) => {
       },
     };
     await users.updateOne({ id: userId }, updateDoc, { upsert: true });
+    ctx.reply('Root page saved successfully! Don\'t forget to share it with your integration (see guide)');
+  } catch (e) {
+    ctx.reply('ERROR: failed to save root page; our bad. Please try /notionPage again');
   } finally {
     await mongodb.close();
   }
