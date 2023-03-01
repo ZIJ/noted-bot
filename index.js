@@ -108,7 +108,7 @@ Configuration:
 4. Share your page with the integration in Notion (otherwise Notability won't work!)
 5. Copy the root page ID from its URL and send it to Notability: /notionPage <your_page_id>
 
-Detailed guide + video: https://spotless-tulip-a14.notion.site/How-to-configure-Notability-14750f5ddbd64013b896a4f5ad1f3285
+Detailed guide + video: https://notabilityai.notion.site/Getting-Started-Guide-63d53c2c3429498c8dc4210cb37ed86d
 
 Support (founder's Telegram): @igorp0 - happy to help with any issues, please share feedback! What can be improved?
 `));
